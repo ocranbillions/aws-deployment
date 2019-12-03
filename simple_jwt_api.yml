@@ -3,12 +3,12 @@ kind: Service
 metadata:
   name: simple-jwt-api
 spec:
+  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 8080
   selector:
     app: simple-jwt-api
-  type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -16,26 +16,25 @@ metadata:
   name: simple-jwt-api
 spec:
   replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
   selector:
     matchLabels:
       app: simple-jwt-api
-  strategy:
-    rollingUpdate:
-      maxSurge: 2
-      maxUnavailable: 2
-    type: RollingUpdate
   template:
     metadata:
       labels:
         app: simple-jwt-api
     spec:
       containers:
-        - image: CONTAINER_IMAGE
-          name: simple-jwt-api
-          ports:
-            - containerPort: 8080
+        - name: simple-jwt-api
+          image: CONTAINER_IMAGE
           securityContext:
-            allowPrivilegeEscalation: false
             privileged: false
             readOnlyRootFilesystem: false
-            
+            allowPrivilegeEscalation: false
+          ports:
+            - containerPort: 8080
